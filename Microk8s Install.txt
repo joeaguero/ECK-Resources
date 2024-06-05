@@ -1,0 +1,24 @@
+####Home Lab access to VMs and microk8s installation
+
+##Double Tunnel
+ ssh -tt -v -L8888:localhost:8157 root@10.0.0.47#(HostIP) ssh -t -D 8157 root@192.168.100.236 #(VM IP)
+ Firefox Proxy set to 8888
+ Link to k8s Dashboard https://10.152.183.130/#/login
+ 
+ 
+##Install Microk8s
+
+sudo apt-get -y update
+sudo snap install core
+sudo snap install microk8s --classic
+sudo usermod -a -G microk8s $USER
+sudo chown -f -R $USER ~/.kube
+sudo microk8s config > ~/.kube/config
+
+sudo microk8s status
+microk8s enable helm
+microk8s enable storage
+microk8s enable dns
+microk8s enable ingress
+microk8s enable registry
+microk8s.kubectl config view > $HOME/.kube/config

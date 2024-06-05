@@ -1,0 +1,28 @@
+#####Installing ECK Operator##########
+
+#####Install ECK Operator Using Kubectl
+microk8s kubectl create -f https://download.elastic.co/downloads/eck/2.12.1/crds.yaml
+microk8s kubectl apply -f https://download.elastic.co/downloads/eck/2.12.1/operator.yaml
+microk8s kubectl -n elastic-system logs -f statefulset.apps/elastic-operator
+
+#####nstall ECK Operator Using Helm
+microk8s helm repo add elastic https://helm.elastic.co && helm repo update
+microk8s helm install elastic-operator elastic/eck-operator -n elastic-system --create-namespace
+
+###OR IF YOU WANT TO SPECIFY VALUES
+https://github.com/elastic/cloud-on-k8s/tree/2.12/deploy/eck-stack
+helm install my-release -f values.yaml .
+
+
+#####Installation using Yaml can be migrated to Helm
+for CRD in $(microk8s kubectl get crds --no-headers -o custom-columns=NAME:.metadata.name | grep k8s.elastic.co); do
+    microk8s kubectl annotate crd "$CRD" meta.helm.sh/release-name="$RELEASE_NAME"
+    microk8s kubectl annotate crd "$CRD" meta.helm.sh/release-namespace="$RELEASE_NAMESPACE"
+    microk8s kubectl label crd "$CRD" app.kubernetes.io/managed-by=Helm
+done
+
+
+#####Installing ES-STACK USING Yaml####################
+gh repo clone jdel12/eck-kittyhawk
+kubectl apply -f elasticsearch.yml -f kibana.yml -f fleet.yml -f legacy-apmserver.yml -f trial-license.yml
+

@@ -1,0 +1,46 @@
+##ECK Operator Cheetsheet
+
+##Check Operator Logs
+microk8s kubectl -n elastic-system logs -f statefulset.apps/elastic-operator
+
+##Get all Name Spaces and operator configurations
+microk8s kubectl get all --all-namespaces
+microk8s helm show values elastic/eck-operator
+
+##Testing Elastic
+PASSWORD=$(kubectl get secret elasticsearch-es-elastic-user -o go-template='{{.data.elastic | base64decode}}' -n <namespace>)
+curl -u "elastic:$PASSWORD" -k "https://quickstart-es-http:9200"
+kubectl port-forward service/quickstart-es-http 9200
+curl -u "elastic:$PASSWORD" -k "https://localhost:9200"
+
+
+#Managing K8s Secrets
+kubectl get secrets -n <namespace>
+PASSWORD=$(microk8s kubectl get secret <UserFromCommandAbove> -o go-template='{{.data.elastic | base64decode}}' -n <namespace>)
+echo $PASSWORD
+
+##Get Overview of the ES Cluster
+microk8s kubectl get elasticsearch
+microk8s kubectl get pods --selector='elasticsearch.k8s.elastic.co/cluster-name=quickstart'
+kubectl logs -f quickstart
+
+
+#Helm
+microk8s helm list
+helm delete my-release -n elastic-stack
+microk8s helm upgarde my-release -f values.yaml . -n elastic-stack 
+microk8s helm install my-release -f values.yaml . -n elastic-stack --create-namespace
+microk8s helm upgrade  -f values.yaml my-release . -n elastic-stack
+
+
+#Watch Deployment
+watch microk8s kubectl get elastic -n elastic-stack -l "app.kubernetes.io/instance"=my-release
+
+#Elastic User PASSWORD
+microk8s kubectl get secret elasticsearch-es-elastic-user -o=jsonpath='{.data.elastic}' | base64 --decode; echo
+
+#APM User PASSWORD
+microk8s kubectl get secret apm-server-apm-token -o=jsonpath='{.data.secret-token}' | base64 --decode; echo
+
+#Get license Status
+microk8s kubectl -n elastic-system get configmap elastic-licensing -o json | jq .data
