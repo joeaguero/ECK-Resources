@@ -1,0 +1,23 @@
+#####iManage Lab Deployment#############
+####Git Clone
+git clone https://github.com/joeaguero/ECK-Resources
+
+#####Deploy Operator
+kubectl create -f https://download.elastic.co/downloads/eck/2.12.1/crds.yaml
+kubectl apply -f https://download.elastic.co/downloads/eck/2.12.1/operator.yaml
+kubectl -n elastic-system logs -f statefulset.apps/elastic-operator
+
+######Deploy Cluster
+kubectl apply -f elasticsearch.yml -f kibana.yml -f fleet.yml -f trial-license.yml
+
+######Check License Status
+kubectl -n elastic-system get configmap elastic-licensing -o json | jq .data
+
+
+##Delete Cluster using yml files
+kubectl delete -f elasticsearch.yml -f kibana.yml -f fleet.yml -f legacy-apmserver.yml -f trial-license.yml
+
+##Delete Operator
+kubectl delete -f https://download.elastic.co/downloads/eck/2.12.1/operator.yaml
+kubectl delete -f https://download.elastic.co/downloads/eck/2.12.1/crds.yaml
+
